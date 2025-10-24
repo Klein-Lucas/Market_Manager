@@ -22,10 +22,16 @@ project_root/
 ├── src/
 │   │
 │   ├── ingest/                # Entrada e validação dos dados (ponto de entrada)
+│   │   ├── api/               # Ponto de entrada (porta que vai escutar as ESPs)
+│   │   ├── ingest_controller/ # Controla todo o fluxo dependendo do tipo de evento
+│   │   ├── ingest_dispatcher/ # Contém lógica para envio das requisições ao Orchestrator
+│   │   ├── validation/        # Camada para autenticação da ESP e validação do seu conteúdo
+│   │   └── errors/            # Camada para lidar com erros e emitir mensagens ou retrys
 │   │
 │   ├── orchestrator/          # Núcleo de processamento e decisão
 │   │   ├── controller/        # Coordena as regras conforme o tipo de evento
 │   │   ├── service/           # Armazena a lógica para realizar o processamento das requisições do controller
+│   │   ├── dispatcher/        # Contém lógica para envio das respostas para as ESPs
 │   │   └── repository/        # Conexão, fallback de dados e persistência e logs de eventos
 │   │
 │   ├── admin_ui/              # Interface administrativa (gerenciamento e logs)
