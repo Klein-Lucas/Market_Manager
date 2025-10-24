@@ -19,40 +19,25 @@ Cada camada tem responsabilidades bem definidas — entrada, orquestração, per
 ```
 project_root/
 │
-├── ingest/                # Entrada e validação dos dados (ponto de entrada)
+├── src/
+│   │
+│   ├── ingest/                # Entrada e validação dos dados (ponto de entrada)
+│   │
+│   ├── orchestrator/          # Núcleo de processamento e decisão
+│   │   ├── controller/        # Coordena as regras conforme o tipo de evento
+│   │   ├── service/           # Armazena a lógica para realizar o processamento das requisições do controller
+│   │   └── repository/        # Conexão, fallback de dados e persistência e logs de eventos
+│   │
+│   ├── admin_ui/              # Interface administrativa (gerenciamento e logs)
+│   │
+│   ├── logs/                  # Registro de eventos e métricas do sistema
+│   │
+│   ├── core/                  # Configurações, utilitários e variáveis de ambiente
+│   │
+│   └── dashboards/            # Transformação de logs em métricas e visualizações
 │
-├── orchestrator/          # Núcleo de processamento e decisão
-│   ├── controller/        # Coordena as regras conforme o tipo de evento
-│   ├── service/
-│   │   ├── media_service.py   # Processa áudio e executa Speech-to-Text
-│   │   ├── dispatcher.py      # Publica mensagens (ex: MQTT)
-│   └── repository/        # Persistência e logs de eventos
-│
-├── database/              # Conexão e fallback de dados (SQLite → PostgreSQL)
-│
-├── admin_ui/              # Interface administrativa (gerenciamento e logs)
-│
-├── logging/               # Registro de eventos e métricas do sistema
-│
-├── core/                  # Configurações, utilitários e variáveis de ambiente
-│
-└── dashboards/            # Transformação de logs em métricas e visualizações
+└── test/                      # Testes unitários e de integração
 ```
-
----
-
-## 🧠 Principais Módulos e Responsabilidades
-
-| Módulo | Função | Observações |
-|--------|--------|-------------|
-| **ingest** | Entrada de dados e validação inicial | Ponto de recepção de eventos (áudio/imagem) |
-| **media_service** | Processamento de mídia (STT) | Converte áudio em texto e registra logs |
-| **orchestrator/controller** | Regras de decisão | Decide ações conforme tipo de evento |
-| **orchestrator/service** | Lógica de negócio | Contém as ações a serem executadas pelo sistema |
-| **orchestrator/repository** | Persistência | Salva logs, eventos e resultados |
-| **dispatcher** | Comunicação MQTT | Envia instruções para os crachás inteligentes |
-| **logging** | Registro de métricas | Guarda histórico detalhado de decisões |
-| **dashboards** | Visualização de desempenho | Converte logs em gráficos e KPIs |
 
 ---
 
