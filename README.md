@@ -73,7 +73,7 @@ project_root/
 
 O fluxo principal do sistema segue as etapas abaixo:
 
-```mermaid
+```
 
 ESP = A[1️⃣ Recebimento de Evento - (Áudio + Imagem?)]
 A --> B[2️⃣ Ingest_Service - Valida e formata dados]
