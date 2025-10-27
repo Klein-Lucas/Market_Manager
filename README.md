@@ -43,6 +43,7 @@ project_root/
 │   └── dashboards/            # Transformação de logs em métricas e visualizações
 │
 └── test/                      # Testes unitários e de integração
+
 ```
 
 ---
@@ -53,7 +54,7 @@ project_root/
 - **Framework Web:** Flask
 - **Banco de Dados:** SQLite / PostgreSQL
 - **Gerenciador de Pacotes:** uv
-- **Protocolo de Comunicação:** MQTT
+- **Protocolo de Comunicação:** HTTP
 - **Interface de Admin:** React ou Streamlit (em desenvolvimento)
 - **Arquitetura:** N-Tier + Event-Driven
 
