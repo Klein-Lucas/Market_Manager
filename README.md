@@ -1,159 +1,121 @@
-# 🏪 Sistema de Gerenciamento de Supermercado
+# Market Manager
 
-## 📖 Visão Geral
+![Status](https://img.shields.io/badge/status-in%20development-yellow)
 
-O **Sistema de Gerenciamento de Supermercado** é uma aplicação modular desenvolvida em **Python + Flask**, voltada para automação operacional no varejo.  
-O sistema recebe informações de dispositivos **ESP (crachás inteligentes)** e processa-as para gerar **ações corretivas automáticas**, como notificações para equipes, medições de tempo de resposta e análise de produtividade.
+> Event-driven supermarket operations management system — powered by Python, Flask, and smart badge devices (ESP).
 
-A comunicação é **event-driven**, com serviços desacoplados em múltiplas camadas, permitindo fácil manutenção e expansão.
+## Overview
 
----
+**Market Manager** is a modular backend application built with **Python + Flask** focused on retail operational automation. The system receives events from **ESP smart badge devices** and processes them to generate **automatic corrective actions** such as team notifications, response time tracking, and productivity analysis.
 
-## ⚙️ Arquitetura Geral
+Communication is **event-driven**, with services decoupled across multiple layers for easy maintenance and scaling.
 
-O sistema é estruturado em uma **arquitetura N-Tier + Event-Driven**, composta por módulos independentes conectados pela camada principal (`main`), que injeta dependências entre os serviços.  
-Cada camada tem responsabilidades bem definidas — entrada, orquestração, persistência, interface e análise.
+## Architecture
 
-### 🧩 Estrutura de Pastas
+The system follows an **N-Tier + Event-Driven** architecture, composed of independent modules connected through the main entry point, which handles dependency injection between services. Each layer has well-defined responsibilities — ingestion, orchestration, persistence, interface, and analytics.
+
+### Folder Structure
 
 ```
 project_root/
 │
 ├── src/
+│   ├── ingest/                # Data ingestion and validation (entry point)
+│   │   ├── api/               # HTTP listener for ESP device events
+│   │   ├── ingest_controller/ # Controls the full flow depending on event type
+│   │   ├── ingest_dispatcher/ # Sends requests upstream to the Orchestrator
+│   │   ├── validation/        # ESP authentication and payload validation
+│   │   └── errors/            # Error handling, messages, and retry logic
 │   │
-│   ├── ingest/                # Entrada e validação dos dados (ponto de entrada)
-│   │   ├── api/               # Ponto de entrada (porta que vai escutar as ESPs)
-│   │   ├── ingest_controller/ # Controla todo o fluxo dependendo do tipo de evento
-│   │   ├── ingest_dispatcher/ # Contém lógica para envio das requisições ao Orchestrator
-│   │   ├── validation/        # Camada para autenticação da ESP e validação do seu conteúdo
-│   │   └── errors/            # Camada para lidar com erros e emitir mensagens ou retrys
+│   ├── orchestrator/          # Core processing and decision engine
+│   │   ├── controller/        # Coordinates rules based on event type
+│   │   ├── service/           # Business logic for processing controller requests
+│   │   ├── dispatcher/        # Sends responses back to ESP devices
+│   │   └── repository/        # DB connection, data persistence, and event logs
 │   │
-│   ├── orchestrator/          # Núcleo de processamento e decisão
-│   │   ├── controller/        # Coordena as regras conforme o tipo de evento
-│   │   ├── service/           # Armazena a lógica para realizar o processamento das requisições do controller
-│   │   ├── dispatcher/        # Contém lógica para envio das respostas para as ESPs
-│   │   └── repository/        # Conexão, fallback de dados e persistência e logs de eventos
-│   │
-│   ├── admin_ui/              # Interface administrativa (gerenciamento e logs)
-│   │
-│   ├── logs/                  # Registro de eventos e métricas do sistema
-│   │
-│   ├── core/                  # Configurações, utilitários e variáveis de ambiente
-│   │
-│   └── dashboards/            # Transformação de logs em métricas e visualizações
+│   ├── admin_ui/              # Admin interface (management and logs)
+│   ├── logs/                  # Event and metrics logging
+│   ├── core/                  # Config, utilities, and environment variables
+│   └── dashboards/            # Log-to-metrics transformation and visualization
 │
-└── test/                      # Testes unitários e de integração
-
+└── test/                      # Unit and integration tests
 ```
 
----
+## Tech Stack
 
-## 🧑‍💻 Tecnologias Principais
+- **Language:** Python 3.11+
+- **Web Framework:** Flask
+- **Database:** SQLite (dev) / PostgreSQL (prod)
+- **Package Manager:** uv
+- **Communication Protocol:** HTTP
+- **Admin Interface:** React or Streamlit *(in development)*
+- **Architecture:** N-Tier + Event-Driven
 
-- **Linguagem:** Python 3.11+
-- **Framework Web:** Flask
-- **Banco de Dados:** SQLite / PostgreSQL
-- **Gerenciador de Pacotes:** uv
-- **Protocolo de Comunicação:** HTTP
-- **Interface de Admin:** React ou Streamlit (em desenvolvimento)
-- **Arquitetura:** N-Tier + Event-Driven
-
----
-
-## 🧰 Boas Práticas
-
-- Evitar dependências diretas entre módulos (usar injeção na `main`)
-- Logar cada decisão crítica com `event_id` e `timestamp`
-- Separar arquivos de configuração por ambiente
-- Manter funções puras dentro dos serviços
-- Simular dados de entrada (ESPs) para testes locais
-
----
-
-## 🔄 Pipeline de Eventos
-
-O fluxo principal do sistema segue as etapas abaixo:
+## Event Pipeline
 
 ```
-
-ESP = A[1️⃣ Recebimento de Evento - (Áudio + Imagem?)]
-A --> B[2️⃣ Ingest_Service - Valida e formata dados]
-B --> C[3️⃣ Media_Service - STT: Áudio → Texto]
-C --> D[4️⃣ Orchestrator/Controller - Decide a ação a tomar]
-D --> E[5️⃣ Orchestrator/Service - Gera JSON: {event, action}]
-E --> F[6️⃣ Repository - Valida e persiste dados]
-F --> G[7️⃣ Dispatcher - Envia ação para o colaborador correto]
-G --> H[8️⃣ Logging - Registra tudo: event_id, actor, result]
-H --> I[9️⃣ Dashboard - Converte logs em métricas de performance]
-
+ESP Device
+  → [1] Event received (audio + image?)
+  → [2] Ingest Service — validates and formats data
+  → [3] Orchestrator/Controller — decides the action
+  → [4] Orchestrator/Service — builds response payload
+  → [5] Repository — validates and persists data
+  → [6] Dispatcher — routes action to the right collaborator
+  → [7] Logging — records event_id, actor, result
+  → [8] Dashboard — converts logs into performance metrics
 ```
 
-⚠️ Casos excepcionais:
-- O evento pode **não conter imagem**.
-- O áudio pode falhar; o sistema salva a ocorrência como **incompleta** e marca para retry.
-- Se o dispositivo de destino estiver offline, o `dispatcher` faz reenvios com `retry` e `timeout`.
+**Edge cases:**
+- Event may arrive **without an image**.
+- If audio processing fails, the event is saved as **incomplete** and flagged for retry.
+- If the target device is offline, the dispatcher retries with configurable timeout.
 
----
+## Getting Started
 
-## 🚀 Como Executar o Projeto
+### Prerequisites
 
-### Pré-requisitos
+- [uv](https://docs.astral.sh/uv/)
+- SQLite (development) or PostgreSQL (production)
 
-- **uv** (gerenciador de pacotes e ambiente)
-- Banco de dados: **SQLite** (desenvolvimento) / **PostgreSQL** (produção)
-
-### Instalação
+### Installation
 
 ```bash
-# 1. Clonar o repositório
-git clone <link_do_projeto>
+git clone https://github.com/Klein-Lucas/Market_Manager.git
 cd Market_Manager
 
-# 2. Criar ambiente com uv
 uv venv
-source .venv/bin/activate  # (Linux/Mac)
-# ou
-.venv\Scripts\activate     # (Windows)
+source .venv/bin/activate   # Linux/Mac
+.venv\Scripts\activate      # Windows
 
-# 3. Instalar dependências
 uv sync
 ```
 
-### Configuração do Ambiente
+### Environment Configuration
 
-Crie um arquivo `.env` na pasta `core/` com os parâmetros:
+Create a `.env` file inside `src/core/`:
 
-```
+```env
 DB_URL=sqlite:///./database/dev.db
-BROKER_URL=mqtt://localhost:1883
 MAX_FILE_SIZE_MB=10
 AUDIO_FOLDER=./data/audio
 IMAGE_FOLDER=./data/images
 ```
 
-### Execução
+### Run
 
 ```bash
 uv run flask run
 ```
 
-Ou, se preferir usar diretamente:
+## Roadmap
 
-```bash
-python main.py
-```
+- [ ] Complete Orchestrator layer
+- [ ] Implement Admin UI (Streamlit or React)
+- [ ] Add AI-powered log analysis for automatic insights
+- [ ] Integrate camera monitoring with computer vision
+- [ ] Expand to cover Purchasing, Receiving, and Cashier workflows
+- [ ] Build fair and personalized performance metrics per collaborator
 
----
+## License
 
-## 📊 Próximos Passos e Visão Futura
-
-O projeto será expandido para abranger mais áreas operacionais:
-- **Compras**, **Recebimento**, **Operadores de Caixa**
-- Integração de **IA leve** para análise inteligente de logs e geração de *insights automáticos*
-- **Câmeras de monitoramento** com visão computacional
-- **Checklists automatizados** integrados à rotina dos crachás
-- **Métricas justas e personalizadas** de desempenho operacional
-
-> A meta é criar um **ecossistema inteligente e transparente** para medir eficiência, reduzir desperdícios e aprimorar a gestão da operação.
-
----
+MIT
